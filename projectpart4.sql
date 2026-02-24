@@ -50,14 +50,18 @@ CREATE TABLE Instructor (
 );
 
 CREATE TABLE Course (
-   CourseCode VARCHAR(7) NOT NULL,
-   preReqCourseCode VARCHAR2(7) NOT NULL,
+   CourseCode VARCHAR2(7) NOT NULL,
+   preReqCourseCode VARCHAR2(7),
    Name VARCHAR2(20) NOT NULL,
-   NumOfCredits number(1) NOT NULL,
+   NumOfCredits NUMBER(1) NOT NULL,
    CONSTRAINT course_pk PRIMARY KEY (CourseCode),
-   CONSTRAINT course_uk UNIQUE (Name),
-   CONSTRAINT course_preReqCourseCode_uk FOREIGN KEY (preReqCourseCode) REFERENCES Course (CourseCode)
+   CONSTRAINT course_uk UNIQUE (Name)
 );
+
+ALTER TABLE Course
+ADD CONSTRAINT course_prereq_fk --adds in a foreign key to add in an alter table method
+    FOREIGN KEY (preReqCourseCode)
+    REFERENCES Course (CourseCode);
 
 CREATE TABLE ScheduledCourse (
    CRN NUMBER(5) NOT NULL, 
@@ -69,14 +73,25 @@ CREATE TABLE ScheduledCourse (
    CONSTRAINT course_scheduledCourse_fk FOREIGN KEY (CourseCode) REFERENCES Course (CourseCode)
 );
 CREATE TABLE CredentialCourse (
-   CourseCode VARCHAR2(7) NOT NULL, --changed from physical model to match course originaly was VARCHAR2(7) & VARCHAR2(10)
+   CourseCode VARCHAR2(7) NOT NULL, --i changed this from physical model to match course originaly was VARCHAR2(7) & VARCHAR2(10)
    CredentialID NUMBER(10) NOT NULL,
-   TypeFlag VARCHAR2(20),
-   CONSTRAINT credentialCourse_pk PRIMARY KEY (CredentialID, CourseCode),
-   CONSTRAINT credentialCourse_fk FOREIGN KEY (CredentialID) REFERENCES Credential(credentialID),
-   CONSTRAINT credentialCourse_fk FOREIGN KEY (CourseCode) REFERENCES Course(CourseCode)
-
+   TypeFlag VARCHAR2(20)
 );
+
+ALTER TABLE CredentialCourse
+ADD CONSTRAINT credentialCourse_pk
+PRIMARY KEY (CredentialID, CourseCode);
+
+ALTER TABLE CredentialCourse
+ADD CONSTRAINT credentialCourse_cred_fk
+FOREIGN KEY (CredentialID)
+REFERENCES Credential(CredentialID);
+
+ALTER TABLE CredentialCourse
+ADD CONSTRAINT credentialCourse_course_fk
+FOREIGN KEY (CourseCode)
+REFERENCES Course(CourseCode);
+
 
 CREATE TABLE StudentCredential (
    StudentID NUMBER(10) NOT NULL,
