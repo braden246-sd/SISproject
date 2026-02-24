@@ -1,7 +1,7 @@
 SET ECHO ON
 
 DROP TABLE StudentCourseRecord CASCADE CONSTRAINTS;
-DROP TABLE Instructor_Courses CASCADE CONSTRAINTS;
+DROP TABLE InstructorCourses CASCADE CONSTRAINTS;
 DROP TABLE StudentCredential CASCADE CONSTRAINTS;
 DROP TABLE CredentialCourse CASCADE CONSTRAINTS;
 DROP TABLE ScheduledCourse CASCADE CONSTRAINTS;
@@ -54,7 +54,7 @@ CREATE TABLE Course (
    preReqCourseCode VARCHAR2(7) NOT NULL,
    Name VARCHAR2(20) NOT NULL,
    NumOfCredits number(1) NOT NULL,
-   CONSTRAINT course_pk PRIMARY KEY (CourseCode, SemesterCode),
+   CONSTRAINT course_pk PRIMARY KEY (CourseCode),
    CONSTRAINT course_uk UNIQUE (Name),
    CONSTRAINT course_preReqCourseCode_uk FOREIGN KEY (preReqCourseCode) REFERENCES Course (CourseCode)
 );
@@ -69,11 +69,43 @@ CREATE TABLE ScheduledCourse (
    CONSTRAINT course_scheduledCourse_fk FOREIGN KEY (CourseCode) REFERENCES Course (CourseCode)
 );
 CREATE TABLE CredentialCourse (
-   CourseCode VARCHAR2(10) NOT NULL,
-   CredentialID VARCHAR2(10) NOT NULL,
+   CourseCode VARCHAR2(7) NOT NULL, --changed from physical model to match course originaly was VARCHAR2(7) & VARCHAR2(10)
+   CredentialID NUMBER(10) NOT NULL,
    TypeFlag VARCHAR2(20),
    CONSTRAINT credentialCourse_pk PRIMARY KEY (CredentialID, CourseCode),
    CONSTRAINT credentialCourse_fk FOREIGN KEY (CredentialID) REFERENCES Credential(credentialID),
    CONSTRAINT credentialCourse_fk FOREIGN KEY (CourseCode) REFERENCES Course(CourseCode)
 
+);
+
+CREATE TABLE StudentCredential (
+   StudentID NUMBER(10) NOT NULL,
+   CredentialID NUMBER(10) NOT NULL,
+   StartDate DATE NOT NUll,
+   CompletionDate DATE NOT NULL,
+   CredentialStatus Char(1) NOT NULL,
+   GPA NUMBER(3) NOT NULL,
+   CONSTRAINT studentCredential_pk PRIMARY KEY (StudentID, CredentialID),
+   CONSTRAINT studentCredential_fk FOREIGN KEY (StudentID) REFERENCES  Student(StudentID),
+   CONSTRAINT studentCredential_fk FOREIGN KEY (CredentialID) REFERENCES  Credential(CredentialID)
+
+);
+CREATE TABLE InstructorCourses (
+    SemesterCode VARCHAR2(6) NOT NULL,
+    InstructorID NUMBER(10) NOT NULL,
+    CRN NUMBER(5) NOT NULL,
+    CONSTRAINT instructorCourses_pk PRIMARY KEY (SemesterCode, InstructorID, CRN),
+    CONSTRAINT instructorCourses_instructor_fk FOREIGN KEY (InstructorID) REFERENCES Instructor (InstructorID),
+    CONSTRAINT instructorCourses_crn_fk FOREIGN KEY (CRN) REFERENCES ScheduledCourse (CRN)
+);
+CREATE TABLE StudentCourseRecord (
+    StudentID NUMBER(10) NOT NULL,
+    CRN NUMBER(5) NOT NULL,
+    SemesterCode VARCHAR2(6) NOT NULL,
+    CredentialID NUMBER(10) NOT NULL,
+    LetterGrade CHAR(1) NOT NULL,
+    CONSTRAINT studentCourseRecord_pk PRIMARY KEY (StudentID, CRN, SemesterCode),
+    CONSTRAINT scr_student_fk FOREIGN KEY (StudentID) REFERENCES Student (StudentID),
+    CONSTRAINT scr_crn_fk FOREIGN KEY (CRN) REFERENCES ScheduledCourse (CRN),
+    CONSTRAINT scr_cred_fk FOREIGN KEY (CredentialID) REFERENCES Credential (CredentialID)
 );
