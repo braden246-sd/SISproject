@@ -54,7 +54,26 @@ CREATE TABLE Course (
    preReqCourseCode VARCHAR2(7) NOT NULL,
    Name VARCHAR2(20) NOT NULL,
    NumOfCredits number(1) NOT NULL,
-   CONSTRAINT course_pk PRIMARY KEY (CourseCode),
+   CONSTRAINT course_pk PRIMARY KEY (CourseCode, SemesterCode),
    CONSTRAINT course_uk UNIQUE (Name),
    CONSTRAINT course_preReqCourseCode_uk FOREIGN KEY (preReqCourseCode) REFERENCES Course (CourseCode)
+);
+
+CREATE TABLE ScheduledCourse (
+   CRN NUMBER(5) NOT NULL, 
+   SemesterCode VARCHAR2(6) NOT NULL,
+   CourseCode VARCHAR2(7) NOT NULL,
+   SectionCode CHAR(1) NOT NULL,
+   CONSTRAINT scheduledCourse_pk PRIMARY KEY (CRN),
+   CONSTRAINT scheduledCourse_uk UNIQUE (CourseCode),
+   CONSTRAINT course_scheduledCourse_fk FOREIGN KEY (CourseCode) REFERENCES Course (CourseCode)
+);
+CREATE TABLE CredentialCourse (
+   CourseCode VARCHAR2(10) NOT NULL,
+   CredentialID VARCHAR2(10) NOT NULL,
+   TypeFlag VARCHAR2(20),
+   CONSTRAINT credentialCourse_pk PRIMARY KEY (CredentialID, CourseCode),
+   CONSTRAINT credentialCourse_fk FOREIGN KEY (CredentialID) REFERENCES Credential(credentialID),
+   CONSTRAINT credentialCourse_fk FOREIGN KEY (CourseCode) REFERENCES Course(CourseCode)
+
 );
