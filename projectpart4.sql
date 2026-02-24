@@ -1,4 +1,5 @@
 SET ECHO ON
+SPOOL projectpt4.lst
 
 DROP TABLE StudentCourseRecord CASCADE CONSTRAINTS;
 DROP TABLE InstructorCourses CASCADE CONSTRAINTS;
@@ -73,7 +74,7 @@ CREATE TABLE ScheduledCourse (
    CONSTRAINT course_scheduledCourse_fk FOREIGN KEY (CourseCode) REFERENCES Course (CourseCode)
 );
 CREATE TABLE CredentialCourse (
-   CourseCode VARCHAR2(7) NOT NULL, --i changed this from physical model to match course originaly was VARCHAR2(7) & VARCHAR2(10)
+   CourseCode VARCHAR2(7) NOT NULL,
    CredentialID NUMBER(10) NOT NULL,
    TypeFlag VARCHAR2(20)
 );
@@ -94,16 +95,15 @@ REFERENCES Course(CourseCode);
 
 
 CREATE TABLE StudentCredential (
-   StudentID NUMBER(10) NOT NULL,
-   CredentialID NUMBER(10) NOT NULL,
-   StartDate DATE NOT NUll,
-   CompletionDate DATE NOT NULL,
-   CredentialStatus Char(1) NOT NULL,
-   GPA NUMBER(3) NOT NULL,
-   CONSTRAINT studentCredential_pk PRIMARY KEY (StudentID, CredentialID),
-   CONSTRAINT studentCredential_fk FOREIGN KEY (StudentID) REFERENCES  Student(StudentID),
-   CONSTRAINT studentCredential_fk FOREIGN KEY (CredentialID) REFERENCES  Credential(CredentialID)
-
+    StudentID NUMBER(10) NOT NULL,
+    CredentialID NUMBER(10) NOT NULL,
+    StartDate DATE NOT NULL,
+    CompletionDate DATE NOT NULL,
+    CredentialStatus CHAR(1) NOT NULL,
+    GPA NUMBER(3) NOT NULL,
+    CONSTRAINT studentCredential_pk PRIMARY KEY (StudentID, CredentialID),
+    CONSTRAINT studentCredential_student_fk FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
+    CONSTRAINT studentCredential_credential_fk FOREIGN KEY (CredentialID) REFERENCES Credential(CredentialID)
 );
 CREATE TABLE InstructorCourses (
     SemesterCode VARCHAR2(6) NOT NULL,
@@ -124,3 +124,4 @@ CREATE TABLE StudentCourseRecord (
     CONSTRAINT scr_crn_fk FOREIGN KEY (CRN) REFERENCES ScheduledCourse (CRN),
     CONSTRAINT scr_cred_fk FOREIGN KEY (CredentialID) REFERENCES Credential (CredentialID)
 );
+SPOOL OFF;

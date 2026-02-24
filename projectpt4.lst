@@ -1,0 +1,191 @@
+SQL> 
+SQL> DROP TABLE StudentCourseRecord CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE InstructorCourses CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE StudentCredential CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE CredentialCourse CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE ScheduledCourse CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE Course CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE Instructor CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE Student CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE Credential CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> 
+SQL> 
+SQL> -- now create table in reverse order
+SQL> 
+SQL> CREATE TABLE Credential (
+  2  	 CredentialID NUMBER(10) NOT NULL,
+  3  	 School VARCHAR2(50) NOT NULL,
+  4  	 Name VARCHAR2(50) NOT NULL,
+  5  	 Type CHAR(2) NOT NULL,
+  6  	 CONSTRAINT credential_pk PRIMARY KEY (CredentialID),
+  7  	 CONSTRAINT credential_type_ck CHECK (Type IN ('MI','FT','CT','DP','AD','D'))
+  8  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE Student (
+  2  	StudentID NUMBER(10) NOT NULL,
+  3  	FirstName VARCHAR2(50) NOT NULL,
+  4  	LastName VARCHAR(50) NOT NULL,
+  5  	Status VARCHAR2(2) NOT NULL,
+  6  	StatusDate Date NOT NULL,
+  7  	Phone VARCHAR2(10) NOT NULL,
+  8  	Email VARCHAR2(50) NOT NULL,
+  9  	CONSTRAINT student_pk PRIMARY KEY (StudentID),
+ 10  	CONSTRAINT student_status_ck CHECK (Status IN ('A','AP','S','E')),
+ 11  	CONSTRAINT student_email_uk UNIQUE (Email)
+ 12  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE Instructor (
+  2  	InstructorID NUMBER(10) NOT NULL,
+  3  	FirstName VARCHAR2(50) NOT NULL,
+  4  	LastName VARCHAR2(50) NOT NULL,
+  5  	Address VARCHAR2(100) NOT NULL,
+  6  	City VARCHAR2(40) NOT NULL,
+  7  	Province CHAR(2) NOT NULL,
+  8  	PostalCode VARCHAR(6) NOT NULL,
+  9  	PhoneNumber NUMBER(10) NOT NULL,
+ 10  	Email VARCHAR2(100) NOT NULL,
+ 11  	CONSTRAINT instructor_pk PRIMARY KEY (InstructorID),
+ 12  	CONSTRAINT instructor_province_ck CHECK(Province IN ('AB','BC','SK','MB','ON','QC','NB','NS','PE','NL','YT','NT','NU'))
+ 13  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE Course (
+  2  	CourseCode VARCHAR2(7) NOT NULL,
+  3  	preReqCourseCode VARCHAR2(7),
+  4  	Name VARCHAR2(20) NOT NULL,
+  5  	NumOfCredits NUMBER(1) NOT NULL,
+  6  	CONSTRAINT course_pk PRIMARY KEY (CourseCode),
+  7  	CONSTRAINT course_uk UNIQUE (Name)
+  8  );
+
+Table created.
+
+SQL> 
+SQL> ALTER TABLE Course
+  2  ADD CONSTRAINT course_prereq_fk --adds in a foreign key to add in an alter table method
+  3  	 FOREIGN KEY (preReqCourseCode)
+  4  	 REFERENCES Course (CourseCode);
+
+Table altered.
+
+SQL> 
+SQL> CREATE TABLE ScheduledCourse (
+  2  	CRN NUMBER(5) NOT NULL,
+  3  	SemesterCode VARCHAR2(6) NOT NULL,
+  4  	CourseCode VARCHAR2(7) NOT NULL,
+  5  	SectionCode CHAR(1) NOT NULL,
+  6  	CONSTRAINT scheduledCourse_pk PRIMARY KEY (CRN),
+  7  	CONSTRAINT scheduledCourse_uk UNIQUE (CourseCode),
+  8  	CONSTRAINT course_scheduledCourse_fk FOREIGN KEY (CourseCode) REFERENCES Course (CourseCode)
+  9  );
+
+Table created.
+
+SQL> CREATE TABLE CredentialCourse (
+  2  	CourseCode VARCHAR2(7) NOT NULL,
+  3  	CredentialID NUMBER(10) NOT NULL,
+  4  	TypeFlag VARCHAR2(20)
+  5  );
+
+Table created.
+
+SQL> 
+SQL> ALTER TABLE CredentialCourse
+  2  ADD CONSTRAINT credentialCourse_pk
+  3  PRIMARY KEY (CredentialID, CourseCode);
+
+Table altered.
+
+SQL> 
+SQL> ALTER TABLE CredentialCourse
+  2  ADD CONSTRAINT credentialCourse_cred_fk
+  3  FOREIGN KEY (CredentialID)
+  4  REFERENCES Credential(CredentialID);
+
+Table altered.
+
+SQL> 
+SQL> ALTER TABLE CredentialCourse
+  2  ADD CONSTRAINT credentialCourse_course_fk
+  3  FOREIGN KEY (CourseCode)
+  4  REFERENCES Course(CourseCode);
+
+Table altered.
+
+SQL> 
+SQL> 
+SQL> CREATE TABLE StudentCredential (
+  2  	 StudentID NUMBER(10) NOT NULL,
+  3  	 CredentialID NUMBER(10) NOT NULL,
+  4  	 StartDate DATE NOT NULL,
+  5  	 CompletionDate DATE NOT NULL,
+  6  	 CredentialStatus CHAR(1) NOT NULL,
+  7  	 GPA NUMBER(3) NOT NULL,
+  8  	 CONSTRAINT studentCredential_pk PRIMARY KEY (StudentID, CredentialID),
+  9  	 CONSTRAINT studentCredential_student_fk FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
+ 10  	 CONSTRAINT studentCredential_credential_fk FOREIGN KEY (CredentialID) REFERENCES Credential(CredentialID)
+ 11  );
+
+Table created.
+
+SQL> CREATE TABLE InstructorCourses (
+  2  	 SemesterCode VARCHAR2(6) NOT NULL,
+  3  	 InstructorID NUMBER(10) NOT NULL,
+  4  	 CRN NUMBER(5) NOT NULL,
+  5  	 CONSTRAINT instructorCourses_pk PRIMARY KEY (SemesterCode, InstructorID, CRN),
+  6  	 CONSTRAINT instructorCourses_instructor_fk FOREIGN KEY (InstructorID) REFERENCES Instructor (InstructorID),
+  7  	 CONSTRAINT instructorCourses_crn_fk FOREIGN KEY (CRN) REFERENCES ScheduledCourse (CRN)
+  8  );
+
+Table created.
+
+SQL> CREATE TABLE StudentCourseRecord (
+  2  	 StudentID NUMBER(10) NOT NULL,
+  3  	 CRN NUMBER(5) NOT NULL,
+  4  	 SemesterCode VARCHAR2(6) NOT NULL,
+  5  	 CredentialID NUMBER(10) NOT NULL,
+  6  	 LetterGrade CHAR(1) NOT NULL,
+  7  	 CONSTRAINT studentCourseRecord_pk PRIMARY KEY (StudentID, CRN, SemesterCode),
+  8  	 CONSTRAINT scr_student_fk FOREIGN KEY (StudentID) REFERENCES Student (StudentID),
+  9  	 CONSTRAINT scr_crn_fk FOREIGN KEY (CRN) REFERENCES ScheduledCourse (CRN),
+ 10  	 CONSTRAINT scr_cred_fk FOREIGN KEY (CredentialID) REFERENCES Credential (CredentialID)
+ 11  );
+
+Table created.
+
+SQL> SPOOL OFF;
